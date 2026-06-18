@@ -13,7 +13,7 @@ connectDb()
 app.use(express.json())
 const origin = process.env.ORIGIN || 'http://localhost:5173'
 app.use(cors({
-    origin:[origin,'https://e-commerce-gamma-olive.vercel.app/'],
+    origin:[origin,'https://e-commerce-gamma-olive.vercel.app'],
     credentials:true
 }))
 app.use(cookieParser())
