@@ -15,23 +15,25 @@ const startServer = async () => {
   console.log(users);
 
   app.use(express.json())
-  const allowedOrigins = process.env.ORIGIN ? process.env.ORIGIN.split(',') : ['http://localhost:5173', 'https://e-commerce-gamma-olive.vercel.app']
+  const allowedOrigins = process.env.ORIGIN ? process.env.ORIGIN.split(',').map(s => s.trim().replace(/\/$/, '')) : ['http://localhost:5173', 'https://e-commerce-gamma-olive.vercel.app']
+  console.log('Allowed origins:', allowedOrigins)
 
     const allowAll = process.env.ALLOW_ALL_CORS === 'true'
 
     const corsOptions = {
-      origin: function(origin, callback) {
-        console.log('CORS check origin:', origin)
-        if (allowAll) {
-          return callback(null, true)
-        }
-        if (!origin) return callback(null, false)
-        if (allowedOrigins.indexOf(origin) !== -1) {
-          return callback(null, true)
-        } else {
-          return callback(new Error('Not allowed by CORS'), false)
-        }
-      },
+        origin: function(origin, callback) {
+          console.log('CORS check origin:', origin)
+          if (allowAll) {
+            return callback(null, true)
+          }
+          if (!origin) return callback(null, true)
+          const originToCheck = origin.trim().replace(/\/$/, '')
+          if (allowedOrigins.indexOf(originToCheck) !== -1) {
+            return callback(null, true)
+          } else {
+            return callback(new Error('Not allowed by CORS'), false)
+          }
+        },
       credentials: true,
       methods: ['GET','POST','PUT','DELETE','OPTIONS'],
       allowedHeaders: ['Content-Type','Authorization']
