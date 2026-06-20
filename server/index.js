@@ -7,7 +7,7 @@ const connectDb = require('./config/db')
 const cartRouter = require('./routes/cartRoutes')
 const user = require('./models/user');
 const app = express()
-const port = 3000
+const port = process.env.PORT || 3000
 
 const startServer = async () => {
   await connectDb()
@@ -15,17 +15,23 @@ const startServer = async () => {
   console.log(users);
 
   app.use(express.json())
-  const allowedOrigins = [process.env.ORIGIN || 'http://localhost:5173', 'https://e-commerce-gamma-olive.vercel.app']
-  app.use(cors({
+  const allowedOrigins = process.env.ORIGIN ? process.env.ORIGIN.split(',') : ['http://localhost:5173', 'https://e-commerce-gamma-olive.vercel.app']
+
+  const corsOptions = {
       origin: allowedOrigins,
-      credentials:true,
-      methods:['GET','POST','PUT','DELETE','OPTIONS'],
-      allowedHeaders:['Content-Type','Authorization']
-  }))
-  app.options('*', cors({
-      origin: allowedOrigins,
-      credentials: true
-  }))
+      credentials: true,
+      methods: ['GET','POST','PUT','DELETE','OPTIONS'],
+      allowedHeaders: ['Content-Type','Authorization']
+  }
+
+  // Log incoming Origin for debugging deployed issues
+  app.use((req, res, next) => {
+    console.log('Incoming Origin:', req.headers.origin)
+    next()
+  })
+
+  app.use(cors(corsOptions))
+  app.options('*', cors(corsOptions))
   app.use(cookieParser())
 
   app.use("/api/auth",authRouter)
