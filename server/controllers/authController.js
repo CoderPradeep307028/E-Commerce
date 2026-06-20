@@ -74,12 +74,14 @@ const login = async(req,res) =>{
         }
         
         const token = jwt.sign({id:user._id},process.env.JWT_SECRET,{expiresIn:'1h'})
-        res.cookie('token',token,{
-            httpOnly:true,
-            secure:true,
-            sameSite:'none',
-            expires:new Date(Date.now()+3600000)
-        })
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            expires: new Date(Date.now() + 3600000)
+        }
+        console.log('Setting token cookie:', { secure: cookieOptions.secure, sameSite: cookieOptions.sameSite })
+        res.cookie('token', token, cookieOptions)
        
         res.status(200).json({
             success:true,
@@ -97,12 +99,13 @@ const login = async(req,res) =>{
 
 const logout = async(req,res) =>{
     try{
-        res.clearCookie('token',{
-            httpOnly:true,
-            secure:true,
-            sameSite:'none',
-            expires:new Date(Date.now())
-        })
+        const cookieOptions = {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            expires: new Date(Date.now())
+        }
+        res.clearCookie('token', cookieOptions)
 
         res.status(200).json({
             success:true,
