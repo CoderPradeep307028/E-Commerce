@@ -17,12 +17,25 @@ const startServer = async () => {
   app.use(express.json())
   const allowedOrigins = process.env.ORIGIN ? process.env.ORIGIN.split(',') : ['http://localhost:5173', 'https://e-commerce-gamma-olive.vercel.app']
 
-  const corsOptions = {
-      origin: allowedOrigins,
+    const allowAll = process.env.ALLOW_ALL_CORS === 'true'
+
+    const corsOptions = {
+      origin: function(origin, callback) {
+        console.log('CORS check origin:', origin)
+        if (allowAll) {
+          return callback(null, true)
+        }
+        if (!origin) return callback(null, false)
+        if (allowedOrigins.indexOf(origin) !== -1) {
+          return callback(null, true)
+        } else {
+          return callback(new Error('Not allowed by CORS'), false)
+        }
+      },
       credentials: true,
       methods: ['GET','POST','PUT','DELETE','OPTIONS'],
       allowedHeaders: ['Content-Type','Authorization']
-  }
+    }
 
   // Log incoming Origin for debugging deployed issues
   app.use((req, res, next) => {
@@ -32,6 +45,23 @@ const startServer = async () => {
 
   app.use(cors(corsOptions))
   app.options('*', cors(corsOptions))
+
+  // Fallback for OPTIONS to ensure headers on proxies
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Credentials', 'true')
+      res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+      res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+      const origin = req.headers.origin
+      if (allowAll && origin) {
+        res.header('Access-Control-Allow-Origin', origin)
+      } else if (origin && allowedOrigins.indexOf(origin) !== -1) {
+        res.header('Access-Control-Allow-Origin', origin)
+      }
+      return res.sendStatus(204)
+    }
+    next()
+  })
   app.use(cookieParser())
 
   app.use("/api/auth",authRouter)
