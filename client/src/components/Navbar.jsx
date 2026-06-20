@@ -40,7 +40,7 @@ const Navbar = ({ isDarkMode, setIsDarkMode }) => {
         </Link>
 
         {/* Hamburger Button */}
-        <button className="md:hidden text-2xl" onClick={() => setIsOpen(!isOpen)}>
+        <button className="md:hidden text-2xl ml-auto" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <IoClose size={28} /> : <CiMenuBurger size={28} />}
         </button>
 
